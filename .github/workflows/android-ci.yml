@@ -62,7 +62,7 @@ jobs:
           BILIFIX_STORE_PASSWORD: ${{ secrets.BILIFIX_STORE_PASSWORD }}
           BILIFIX_KEY_ALIAS: ${{ secrets.BILIFIX_KEY_ALIAS }}
           BILIFIX_KEY_PASSWORD: ${{ secrets.BILIFIX_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon --stacktrace :app:lintRelease :app:assembleRelease
+        run: ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest :app:lintRelease :app:assembleRelease
 
       - name: Name APK with release version
         id: apk

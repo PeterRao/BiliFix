@@ -57,6 +57,8 @@ public final class SettingsManager {
             "bilifix_system_share_enabled";
     static final String KEY_AUDIO_VIDEO_SYNC_ENABLED =
             "bilifix_audio_video_sync_enabled";
+    static final String KEY_MINI_PLAYER_STASH_ENABLED =
+            "bilifix_mini_player_stash_enabled";
     static final String KEY_VERBOSE_LOGGING_ENABLED =
             "bilifix_verbose_logging_enabled";
     static final String KEY_SETTINGS_ENTRY = "bilifix_settings_entry";
@@ -328,6 +330,10 @@ public final class SettingsManager {
         return state.audioVideoSync;
     }
 
+    public boolean isMiniPlayerStashEnabled() {
+        return state.miniPlayerStash;
+    }
+
     public boolean isVerboseLoggingEnabled() {
         return state.verboseLogging;
     }
@@ -346,6 +352,7 @@ public final class SettingsManager {
         final boolean paidEmoticonFix;
         final boolean systemShare;
         final boolean audioVideoSync;
+        final boolean miniPlayerStash;
         final boolean verboseLogging;
 
         Snapshot(
@@ -361,6 +368,7 @@ public final class SettingsManager {
                 boolean paidEmoticonFix,
                 boolean systemShare,
                 boolean audioVideoSync,
+                boolean miniPlayerStash,
                 boolean verboseLogging) {
             this.articleFix = articleFix;
             this.dynamicArticleFix = dynamicArticleFix;
@@ -374,6 +382,7 @@ public final class SettingsManager {
             this.paidEmoticonFix = paidEmoticonFix;
             this.systemShare = systemShare;
             this.audioVideoSync = audioVideoSync;
+            this.miniPlayerStash = miniPlayerStash;
             this.verboseLogging = verboseLogging;
         }
 
@@ -383,7 +392,8 @@ public final class SettingsManager {
                     DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED,
                     DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED,
                     DEFAULT_FEATURE_ENABLED,
-                    DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED);
+                    DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED,
+                    DEFAULT_FEATURE_ENABLED);
         }
 
         static Snapshot fromPreferences(SharedPreferences preferences) {
@@ -413,6 +423,8 @@ public final class SettingsManager {
                     preferences.getBoolean(
                             KEY_AUDIO_VIDEO_SYNC_ENABLED, DEFAULT_FEATURE_ENABLED),
                     preferences.getBoolean(
+                            KEY_MINI_PLAYER_STASH_ENABLED, DEFAULT_FEATURE_ENABLED),
+                    preferences.getBoolean(
                             KEY_VERBOSE_LOGGING_ENABLED, DEFAULT_FEATURE_ENABLED));
         }
 
@@ -430,6 +442,7 @@ public final class SettingsManager {
                     valueOf(values, KEY_PAID_EMOTICON_FIX_ENABLED),
                     valueOf(values, KEY_SYSTEM_SHARE_ENABLED),
                     valueOf(values, KEY_AUDIO_VIDEO_SYNC_ENABLED),
+                    valueOf(values, KEY_MINI_PLAYER_STASH_ENABLED),
                     valueOf(values, KEY_VERBOSE_LOGGING_ENABLED));
         }
 
@@ -466,6 +479,8 @@ public final class SettingsManager {
                     intent.getBooleanExtra(
                             KEY_AUDIO_VIDEO_SYNC_ENABLED, fallback.audioVideoSync),
                     intent.getBooleanExtra(
+                            KEY_MINI_PLAYER_STASH_ENABLED, fallback.miniPlayerStash),
+                    intent.getBooleanExtra(
                             KEY_VERBOSE_LOGGING_ENABLED, fallback.verboseLogging));
         }
 
@@ -484,6 +499,7 @@ public final class SettingsManager {
                     .putExtra(KEY_PAID_EMOTICON_FIX_ENABLED, paidEmoticonFix)
                     .putExtra(KEY_SYSTEM_SHARE_ENABLED, systemShare)
                     .putExtra(KEY_AUDIO_VIDEO_SYNC_ENABLED, audioVideoSync)
+                    .putExtra(KEY_MINI_PLAYER_STASH_ENABLED, miniPlayerStash)
                     .putExtra(KEY_VERBOSE_LOGGING_ENABLED, verboseLogging);
         }
 
@@ -500,6 +516,7 @@ public final class SettingsManager {
                     && paidEmoticonFix == other.paidEmoticonFix
                     && systemShare == other.systemShare
                     && audioVideoSync == other.audioVideoSync
+                    && miniPlayerStash == other.miniPlayerStash
                     && verboseLogging == other.verboseLogging;
         }
 
@@ -518,6 +535,7 @@ public final class SettingsManager {
                     + " paidEmoticonFix=" + paidEmoticonFix
                     + " systemShare=" + systemShare
                     + " audioVideoSync=" + audioVideoSync
+                    + " miniPlayerStash=" + miniPlayerStash
                     + " verboseLogging=" + verboseLogging;
         }
     }

@@ -57,8 +57,8 @@ android {
         applicationId = "com.xjw.bilifix.in"
         minSdk = 26
         targetSdk = 36
-        versionCode = 38
-        versionName = "0.12.0"
+        versionCode = providers.gradleProperty("testVersionCode").orNull?.toInt() ?: 38
+        versionName = providers.gradleProperty("testVersionName").orNull ?: "0.12.0"
     }
 
     signingConfigs {
@@ -104,6 +104,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     compileOnly("io.github.libxposed:api:${libxposedApiVersion.get()}") {
         isTransitive = false
     }

@@ -9,7 +9,7 @@ if [[ -d "$ANDROID_STUDIO_JAVA" ]]; then
 fi
 
 cd "$PROJECT_DIR"
-./gradlew --no-daemon :app:lintRelease :app:assembleRelease
+./gradlew --no-daemon :app:testDebugUnitTest :app:lintRelease :app:assembleRelease
 
 APK_DIR="$PROJECT_DIR/app/build/outputs/apk/release"
 SIGNED_APK="$APK_DIR/BiliFix-White-release.apk"

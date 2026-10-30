@@ -31,6 +31,7 @@ import com.xjw.bilifix.in.feature.compat.CompatFeatureHooks;
 import com.xjw.bilifix.in.feature.emoticon.PaidEmoticonHooks;
 import com.xjw.bilifix.in.feature.location.IpLocationHooks;
 import com.xjw.bilifix.in.feature.player.AudioVideoSyncHooks;
+import com.xjw.bilifix.in.feature.stash.MiniPlayerStashHooks;
 import com.xjw.bilifix.in.feature.share.SystemShareHooks;
 import com.xjw.bilifix.in.feature.settings.SettingsManager;
 import com.xjw.bilifix.in.feature.subtitle.AiSubtitleHooks;
@@ -47,6 +48,7 @@ public final class BiliFixModule extends XposedModule implements HookApi {
     private final List<Feature> features = new ArrayList<>();
     private volatile Handler mainHandler;
     private volatile SystemShareHooks systemShareHooks;
+    private volatile MiniPlayerStashHooks miniPlayerStashHooks;
     private volatile HostVersion hostVersion;
     private volatile ClassLoader hostClassLoader;
     private volatile MossHookHub mossHub;
@@ -108,7 +110,11 @@ public final class BiliFixModule extends XposedModule implements HookApi {
         if (mainProcess) {
             settingsManager.installUiHooks(classLoader);
         }
-        settingsManager.setChangeListener(() -> installEnabledFeatures("settings-change"));
+        settingsManager.setChangeListener(() -> {
+            installEnabledFeatures("settings-change");
+            MiniPlayerStashHooks stash = miniPlayerStashHooks;
+            if (stash != null) stash.onSettingsChanged();
+        });
         installEnabledFeatures("package-ready");
 
         info("hook installation finished: installed=" + hookHandles.size());
@@ -136,6 +142,13 @@ public final class BiliFixModule extends XposedModule implements HookApi {
                         || settingsManager.isSpaceDomesticModulesEnabled(),
                 () -> new IpLocationHooks(this, classLoader, moss, rest).install()));
         if (mainProcess) {
+            features.add(new Feature("mini player stash",
+                    settingsManager::isMiniPlayerStashEnabled,
+                    () -> {
+                        MiniPlayerStashHooks stash = new MiniPlayerStashHooks(this, classLoader);
+                        stash.install();
+                        miniPlayerStashHooks = stash;
+                    }));
             features.add(new Feature("audio/video sync",
                     settingsManager::isAudioVideoSyncEnabled,
                     () -> new AudioVideoSyncHooks(this, classLoader).install()));
@@ -372,6 +385,11 @@ public final class BiliFixModule extends XposedModule implements HookApi {
     @Override
     public boolean isAudioVideoSyncEnabled() {
         return settingsManager.isAudioVideoSyncEnabled();
+    }
+
+    @Override
+    public boolean isMiniPlayerStashEnabled() {
+        return settingsManager.isMiniPlayerStashEnabled();
     }
 
     @Override

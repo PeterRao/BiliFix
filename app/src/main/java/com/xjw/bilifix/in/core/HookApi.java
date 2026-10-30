@@ -44,6 +44,8 @@ public interface HookApi {
 
     boolean isAudioVideoSyncEnabled();
 
+    boolean isMiniPlayerStashEnabled();
+
     boolean isVerboseLoggingEnabled();
 
     /**
