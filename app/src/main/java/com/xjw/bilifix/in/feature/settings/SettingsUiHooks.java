@@ -30,6 +30,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import static com.xjw.bilifix.in.feature.settings.SettingsManager.KEY_SPONSOR_ENABLED;
+import static com.xjw.bilifix.in.feature.settings.SettingsManager.KEY_SPONSOR_MARKERS;
+import static com.xjw.bilifix.in.feature.settings.SettingsManager.ARG_SPONSOR_PAGE;
+import com.xjw.bilifix.in.feature.sponsor.SponsorCategory;
 import com.xjw.bilifix.in.BuildConfig;
 import com.xjw.bilifix.in.core.HookApi;
 
@@ -205,6 +209,36 @@ final class SettingsUiHooks {
                             module.warn("native preference category title layout not found");
                         }
 
+                        if (arguments.getBoolean(ARG_SPONSOR_PAGE, false)) {
+                            if (context instanceof Activity) ((Activity) context).setTitle("空降助手");
+                            addSwitch(screen, switchConstructor, KEY_SPONSOR_ENABLED,
+                                    "启用空降助手", "自动跳过所选类别的社区标记片段", settings.isSponsorEnabled(), 0,
+                                    changeListenerClass, context, addPreference, setKey, setTitle, setSummary,
+                                    setPersistent, setOrder, setOnPreferenceChangeListener, setChecked);
+                            addSwitch(screen, switchConstructor, KEY_SPONSOR_MARKERS,
+                                    "进度条标记", "用颜色标出所选片段", settings.isSponsorMarkersEnabled(), 1,
+                                    changeListenerClass, context, addPreference, setKey, setTitle, setSummary,
+                                    setPersistent, setOrder, setOnPreferenceChangeListener, setChecked);
+                            Object categories = createCategory(context, categoryConstructor, categoryTitleLayout,
+                                    "跳过类别", 2, setTitle, setLayoutResource, setOrder);
+                            module.invoke(addPreference, screen, categories);
+                            for (SponsorCategory category : SponsorCategory.values()) {
+                                addSwitch(categories, switchConstructor, category.key(), category.title, null,
+                                        (settings.sponsorCategories() & category.bit()) != 0, category.ordinal(),
+                                        changeListenerClass, context, addPreference, setKey, setTitle, setSummary,
+                                        setPersistent, setOrder, setOnPreferenceChangeListener, setChecked);
+                            }
+                            Object source = entryConstructor.newInstance(context);
+                            module.invoke(setTitle, source, "空降助手项目");
+                            module.invoke(setSummary, source, "基于 BiliSponsorSkip · 社区分段数据");
+                            module.invoke(setOrder, source, 3);
+                            module.invoke(setPersistent, source, false);
+                            module.invoke(module.publicMethod(preferenceClass, "setIntent", Intent.class), source,
+                                    new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/makabaka11/BiliSponsorSkip")));
+                            module.invoke(addPreference, screen, source);
+                            return null;
+                        }
+
                         Object repairCategory = createCategory(
                                 context, categoryConstructor, categoryTitleLayout,
                                 "修复", 0, setTitle, setLayoutResource, setOrder);
@@ -332,6 +366,19 @@ final class SettingsUiHooks {
                                 addPreference, setKey, setTitle, setSummary,
                                 setPersistent, setOrder,
                                 setOnPreferenceChangeListener, setChecked);
+
+                        Object sponsorEntry = entryConstructor.newInstance(context);
+                        module.invoke(setKey, sponsorEntry, "bilifix_sponsor_entry");
+                        module.invoke(setTitle, sponsorEntry, "空降助手");
+                        module.invoke(setSummary, sponsorEntry, "自动跳过与进度条标记");
+                        module.invoke(setOrder, sponsorEntry, 5);
+                        module.invoke(setPersistent, sponsorEntry, false);
+                        module.invoke(module.publicMethod(preferenceClass, "setFragment", String.class),
+                                sponsorEntry, ADVANCED_SETTINGS_FRAGMENT);
+                        Bundle sponsorArgs = (Bundle) module.invoke(module.publicMethod(preferenceClass, "getExtras"), sponsorEntry);
+                        sponsorArgs.putBoolean(ARG_BILIFIX_SETTINGS_PAGE, true);
+                        sponsorArgs.putBoolean(ARG_SPONSOR_PAGE, true);
+                        module.invoke(addPreference, enhanceCategory, sponsorEntry);
 
                         Object debugCategory = createCategory(
                                 context, categoryConstructor, categoryTitleLayout,

@@ -32,6 +32,7 @@ import com.xjw.bilifix.in.feature.emoticon.PaidEmoticonHooks;
 import com.xjw.bilifix.in.feature.location.IpLocationHooks;
 import com.xjw.bilifix.in.feature.player.AudioVideoSyncHooks;
 import com.xjw.bilifix.in.feature.stash.MiniPlayerStashHooks;
+import com.xjw.bilifix.in.feature.sponsor.SponsorSkipHooks;
 import com.xjw.bilifix.in.feature.share.SystemShareHooks;
 import com.xjw.bilifix.in.feature.settings.SettingsManager;
 import com.xjw.bilifix.in.feature.subtitle.AiSubtitleHooks;
@@ -49,6 +50,7 @@ public final class BiliFixModule extends XposedModule implements HookApi {
     private volatile Handler mainHandler;
     private volatile SystemShareHooks systemShareHooks;
     private volatile MiniPlayerStashHooks miniPlayerStashHooks;
+    private volatile SponsorSkipHooks sponsorSkipHooks;
     private volatile HostVersion hostVersion;
     private volatile ClassLoader hostClassLoader;
     private volatile MossHookHub mossHub;
@@ -114,6 +116,8 @@ public final class BiliFixModule extends XposedModule implements HookApi {
             installEnabledFeatures("settings-change");
             MiniPlayerStashHooks stash = miniPlayerStashHooks;
             if (stash != null) stash.onSettingsChanged();
+            SponsorSkipHooks sponsor = sponsorSkipHooks;
+            if (sponsor != null) sponsor.onSettingsChanged();
         });
         installEnabledFeatures("package-ready");
 
@@ -148,6 +152,12 @@ public final class BiliFixModule extends XposedModule implements HookApi {
                         MiniPlayerStashHooks stash = new MiniPlayerStashHooks(this, classLoader);
                         stash.install();
                         miniPlayerStashHooks = stash;
+                    }));
+            features.add(new Feature("sponsor skip", settingsManager::isSponsorEnabled,
+                    () -> {
+                        SponsorSkipHooks sponsor = new SponsorSkipHooks(this, settingsManager, classLoader);
+                        sponsor.install();
+                        sponsorSkipHooks = sponsor;
                     }));
             features.add(new Feature("audio/video sync",
                     settingsManager::isAudioVideoSyncEnabled,

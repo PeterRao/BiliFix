@@ -13,6 +13,7 @@ import android.os.Build;
 import android.util.Xml;
 
 import com.xjw.bilifix.in.core.HookApi;
+import com.xjw.bilifix.in.feature.sponsor.SponsorCategory;
 
 import org.xmlpull.v1.XmlPullParser;
 
@@ -59,6 +60,9 @@ public final class SettingsManager {
             "bilifix_audio_video_sync_enabled";
     static final String KEY_MINI_PLAYER_STASH_ENABLED =
             "bilifix_mini_player_stash_enabled";
+    static final String KEY_SPONSOR_ENABLED = "bilifix_sponsor_enabled";
+    static final String KEY_SPONSOR_MARKERS = "bilifix_sponsor_markers";
+    static final String ARG_SPONSOR_PAGE = "bilifix_sponsor_page";
     static final String KEY_VERBOSE_LOGGING_ENABLED =
             "bilifix_verbose_logging_enabled";
     static final String KEY_SETTINGS_ENTRY = "bilifix_settings_entry";
@@ -334,6 +338,10 @@ public final class SettingsManager {
         return state.miniPlayerStash;
     }
 
+    public boolean isSponsorEnabled() { return state.sponsorEnabled; }
+    public boolean isSponsorMarkersEnabled() { return state.sponsorMarkers; }
+    public int sponsorCategories() { return state.sponsorCategories; }
+
     public boolean isVerboseLoggingEnabled() {
         return state.verboseLogging;
     }
@@ -353,6 +361,8 @@ public final class SettingsManager {
         final boolean systemShare;
         final boolean audioVideoSync;
         final boolean miniPlayerStash;
+        final boolean sponsorEnabled, sponsorMarkers;
+        final int sponsorCategories;
         final boolean verboseLogging;
 
         Snapshot(
@@ -369,6 +379,7 @@ public final class SettingsManager {
                 boolean systemShare,
                 boolean audioVideoSync,
                 boolean miniPlayerStash,
+                boolean sponsorEnabled, boolean sponsorMarkers, int sponsorCategories,
                 boolean verboseLogging) {
             this.articleFix = articleFix;
             this.dynamicArticleFix = dynamicArticleFix;
@@ -383,6 +394,9 @@ public final class SettingsManager {
             this.systemShare = systemShare;
             this.audioVideoSync = audioVideoSync;
             this.miniPlayerStash = miniPlayerStash;
+            this.sponsorEnabled = sponsorEnabled;
+            this.sponsorMarkers = sponsorMarkers;
+            this.sponsorCategories = sponsorCategories;
             this.verboseLogging = verboseLogging;
         }
 
@@ -393,7 +407,7 @@ public final class SettingsManager {
                     DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED,
                     DEFAULT_FEATURE_ENABLED,
                     DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED, DEFAULT_FEATURE_ENABLED,
-                    DEFAULT_FEATURE_ENABLED);
+                    false, true, SponsorCategory.SPONSOR.bit(), DEFAULT_FEATURE_ENABLED);
         }
 
         static Snapshot fromPreferences(SharedPreferences preferences) {
@@ -424,6 +438,9 @@ public final class SettingsManager {
                             KEY_AUDIO_VIDEO_SYNC_ENABLED, DEFAULT_FEATURE_ENABLED),
                     preferences.getBoolean(
                             KEY_MINI_PLAYER_STASH_ENABLED, DEFAULT_FEATURE_ENABLED),
+                    preferences.getBoolean(KEY_SPONSOR_ENABLED, false),
+                    preferences.getBoolean(KEY_SPONSOR_MARKERS, true),
+                    categoryMask(key -> preferences.getBoolean(key, key.equals(SponsorCategory.SPONSOR.key()))),
                     preferences.getBoolean(
                             KEY_VERBOSE_LOGGING_ENABLED, DEFAULT_FEATURE_ENABLED));
         }
@@ -443,7 +460,16 @@ public final class SettingsManager {
                     valueOf(values, KEY_SYSTEM_SHARE_ENABLED),
                     valueOf(values, KEY_AUDIO_VIDEO_SYNC_ENABLED),
                     valueOf(values, KEY_MINI_PLAYER_STASH_ENABLED),
+                    valueOf(values, KEY_SPONSOR_ENABLED),
+                    values.getOrDefault(KEY_SPONSOR_MARKERS, true),
+                    categoryMask(key -> values.getOrDefault(key, key.equals(SponsorCategory.SPONSOR.key()))),
                     valueOf(values, KEY_VERBOSE_LOGGING_ENABLED));
+        }
+
+        private static int categoryMask(java.util.function.Predicate<String> enabled) {
+            int mask = 0;
+            for (SponsorCategory category : SponsorCategory.values()) if (enabled.test(category.key())) mask |= category.bit();
+            return mask;
         }
 
         private static boolean valueOf(Map<String, Boolean> values, String key) {
@@ -480,6 +506,9 @@ public final class SettingsManager {
                             KEY_AUDIO_VIDEO_SYNC_ENABLED, fallback.audioVideoSync),
                     intent.getBooleanExtra(
                             KEY_MINI_PLAYER_STASH_ENABLED, fallback.miniPlayerStash),
+                    intent.getBooleanExtra(KEY_SPONSOR_ENABLED, fallback.sponsorEnabled),
+                    intent.getBooleanExtra(KEY_SPONSOR_MARKERS, fallback.sponsorMarkers),
+                    intent.getIntExtra("bilifix_sponsor_categories", fallback.sponsorCategories),
                     intent.getBooleanExtra(
                             KEY_VERBOSE_LOGGING_ENABLED, fallback.verboseLogging));
         }
@@ -500,6 +529,9 @@ public final class SettingsManager {
                     .putExtra(KEY_SYSTEM_SHARE_ENABLED, systemShare)
                     .putExtra(KEY_AUDIO_VIDEO_SYNC_ENABLED, audioVideoSync)
                     .putExtra(KEY_MINI_PLAYER_STASH_ENABLED, miniPlayerStash)
+                    .putExtra(KEY_SPONSOR_ENABLED, sponsorEnabled)
+                    .putExtra(KEY_SPONSOR_MARKERS, sponsorMarkers)
+                    .putExtra("bilifix_sponsor_categories", sponsorCategories)
                     .putExtra(KEY_VERBOSE_LOGGING_ENABLED, verboseLogging);
         }
 
@@ -517,6 +549,9 @@ public final class SettingsManager {
                     && systemShare == other.systemShare
                     && audioVideoSync == other.audioVideoSync
                     && miniPlayerStash == other.miniPlayerStash
+                    && sponsorEnabled == other.sponsorEnabled
+                    && sponsorMarkers == other.sponsorMarkers
+                    && sponsorCategories == other.sponsorCategories
                     && verboseLogging == other.verboseLogging;
         }
 
@@ -536,6 +571,9 @@ public final class SettingsManager {
                     + " systemShare=" + systemShare
                     + " audioVideoSync=" + audioVideoSync
                     + " miniPlayerStash=" + miniPlayerStash
+                    + " sponsorEnabled=" + sponsorEnabled
+                    + " sponsorMarkers=" + sponsorMarkers
+                    + " sponsorCategories=" + sponsorCategories
                     + " verboseLogging=" + verboseLogging;
         }
     }
